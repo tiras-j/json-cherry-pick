@@ -66,7 +66,7 @@ static char *escape_utf8(const char *s)
        224 - 1110xxxx - for U+0800 to U+FFFF 
        240 - 11110xxx - for U+010000 to U+1FFFFF */
     static unsigned short mask[] = {192, 224, 240}; 
-    
+
     while(*ptr) {
         if S_CHAR(*ptr) {
             ++req_size;
@@ -151,7 +151,7 @@ static char *escape_utf8(const char *s)
                                       if((data)[(len)] == '\\') ++(len);}
 
 static struct marker NULL_MARKER = {.ptr = NULL, .len = -1};
-    
+
 // Find the length of the value starting at data.
 static ssize_t scan_pair_value(const char *data)
 {
@@ -211,7 +211,7 @@ static const char* scan_pair_key(const char *data, const char *key)
 
         // Move forward the length of the key
         index += key_len;
-        
+
         // Eat whitespace (if any) until ':'
         while(isspace(*(++index)));
         if( !(*index == ':') ) {
@@ -240,7 +240,7 @@ static struct marker scan(const char *data, const char *key)
     struct marker m_prev, m = {.ptr = data, .len = -1};
     char* new_key = strdup(key);
     char* token = strtok(new_key, ".");
-  
+
     while(token) {
         m_prev = m;
         if((m.ptr = scan_pair_key(m.ptr, token)) == NULL || (m.len = scan_pair_value(m.ptr)) == -1) {
