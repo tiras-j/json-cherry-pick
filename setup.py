@@ -1,7 +1,7 @@
 from setuptools import setup
 from setuptools import Extension
 
-version = "0.2.1"
+version = "0.2.2"
 
 jcpmodule = Extension(
     'json_cherry_pick.c_jcp',
@@ -11,6 +11,7 @@ jcpmodule = Extension(
 setup(
     name='json-cherry-pick',
     version=version,
+    packages=['json_cherry_pick'],
     description='JSON Cherry Picker',
     long_description='jcp provides quick access to sub-objects inside large JSON blobs',
     url='https://github.com/tiras-j/jcp',
