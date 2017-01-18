@@ -11,6 +11,7 @@ def _convert_key(s):
         return json.dumps(s)[1:-1]
     return s
 
+
 def consume_string(line, index):
     index += 1
     while line[index] != '"':
