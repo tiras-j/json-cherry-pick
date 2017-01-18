@@ -1,5 +1,10 @@
 Release Notes
 =============
+0.2.0
+-----
+
+* Add python version for compatibility
+
 0.1.2
 -----
 

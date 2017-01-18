@@ -1,11 +1,11 @@
 from setuptools import setup
 from setuptools import Extension
 
-version = "0.1.2"
+version = "0.2.0"
 
 jcpmodule = Extension(
-    'json_cherry_pick',
-    sources=['json_cherry_pick/json_cherry_pick.c'],
+    'json_cherry_pick.c_jcp',
+    sources=['json_cherry_pick/c_jcp.c'],
 )
 
 setup(
@@ -33,4 +33,6 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     ext_modules=[jcpmodule],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
 )

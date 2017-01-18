@@ -437,23 +437,23 @@ static PyObject *jcp_extract_all(PyObject *self, PyObject *args, PyObject *kwarg
 
 static struct PyModuleDef jcpmodule = {
     PyModuleDef_HEAD_INIT,
-    "json_cherry_pick",
+    "c_jcp",
     NULL,
     -1,
     JCPMethods
 };
 
 #define INITERROR return NULL
-PyMODINIT_FUNC PyInit_json_cherry_pick(void)
+PyMODINIT_FUNC PyInit_c_jcp(void)
 #else
-PyMODINIT_FUNC initjson_cherry_pick(void)
+PyMODINIT_FUNC initc_jcp(void)
 #define INITERROR return
 #endif
 {
 #if PY_MAJOR_VERSION >=3
     PyObject *module = PyModule_Create(&jcpmodule);
 #else
-    PyObject *module = Py_InitModule("json_cherry_pick", JCPMethods);
+    PyObject *module = Py_InitModule("c_jcp", JCPMethods);
 #endif
 
     if(module == NULL)
