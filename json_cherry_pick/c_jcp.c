@@ -469,7 +469,6 @@ static PyObject *jcp_key_exists(PyObject *self, PyObject *args, PyObject *kwargs
 
     Py_RETURN_TRUE;
 }
-    
 #if PY_MAJOR_VERSION >= 3
 
 static struct PyModuleDef jcpmodule = {

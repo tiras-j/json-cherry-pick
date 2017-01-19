@@ -1,26 +1,11 @@
 // Flat hash map for storing blob markers 
-//#include <Python.h>
+#include <Python.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "marker_map.h"
 
 #define DEFAULT_ELEMENTS 256
-
-struct marker {
-//    PyObject *loaded_json;
-    struct marker *parent;
-    size_t key_start;
-    size_t key_end;
-    size_t val_start;
-    size_t val_end;
-    int used;
-};
-
-struct marker_map {
-    struct marker *pool;
-    size_t size;
-    size_t nmemb;
-};
 
 static unsigned long djb2_hash(const char *s, size_t len)
 {
@@ -94,15 +79,16 @@ struct marker *fetch_marker(struct marker_map *map, const char *data, const char
     return NULL;
 }
 
-void dealloc_map(struct marker_map *m) {
+void dealloc_map(struct marker_map *m)
+{
     size_t i = 0;
     if(m == NULL || m->pool == NULL)
         return;
-/*
+
     for(; i < m->size; ++i) {
         Py_XDECREF(m->pool[i].loaded_json);
     }
-*/
+
     free(m->pool);
     return;
 }
