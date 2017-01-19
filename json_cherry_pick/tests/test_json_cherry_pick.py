@@ -108,7 +108,8 @@ class TestExistence(object):
     def test_subkey_exists(self, testdata, jcp):
         base, expected = testdata
         for key in expected['test_obj'].keys():
-            s = '.'.join(['test_obj', key]).encode('utf-8')
+            s = '.'.join(['test_obj', key])
+            s = s.encode('utf-8') if sys.version_info < (3, 0) else s
             assert jcp.key_exists(base, s)
 
     def test_subkey_out_of_scope(self, testdata, jcp):
