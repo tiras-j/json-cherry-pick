@@ -10,11 +10,13 @@ static PyObject *json_loads = NULL;
 static PyObject *jcp_extract(PyObject *self, PyObject *args, PyObject *kwargs);
 static PyObject *jcp_extract_all(PyObject *self, PyObject *args, PyObject *kwargs);
 static PyObject *jcp_pluck_list(PyObject *self, PyObject *args, PyObject *kwargs);
+static PyObject *jcp_key_exists(PyObject *self, PyObject *args, PyObject *kwargs);
 
 static PyMethodDef JCPMethods[] = {
     {"extract", (PyCFunction) jcp_extract, METH_VARARGS | METH_KEYWORDS, "Extract the first instance of key."},
     {"extract_all", (PyCFunction) jcp_extract_all, METH_VARARGS | METH_KEYWORDS, "Extract all instances of key."},
     {"pluck_list", (PyCFunction) jcp_pluck_list, METH_VARARGS | METH_KEYWORDS, "Pluck and specific index of a list."},
+    {"key_exists", (PyCFunction) jcp_key_exists, METH_VARARGS | METH_KEYWORDS, "Check if a key exists in the entry."},
     {NULL, NULL, 0, NULL}
 };
 
@@ -433,6 +435,41 @@ static PyObject *jcp_extract_all(PyObject *self, PyObject *args, PyObject *kwarg
     return list;
 }
 
+static PyObject *jcp_key_exists(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    const char *data;
+    const char *key;
+    char *conv_key = NULL;
+    SCAN scan_func;    
+    unsigned char tokenize = 1;
+    struct marker result;
+    static char *kwlist[] = {"data", "key", "tokenize", NULL};
+
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "ss|b", kwlist, &data, &key, &tokenize))
+        return NULL;
+
+    if(is_non_ascii(key)) {
+        conv_key = escape_utf8(key);
+    }
+
+    // Re-use the scanning functions here.
+    // Not *quite* as efficient as strtok/strstr-ing ourselves
+    // but the difference is fairly negligible since it's still
+    // string walking. And we get the scoping guarantees of tokenizatino
+    scan_func = tokenize?scan:scan_no_tok;
+    result = conv_key?scan_func(data, conv_key):scan_func(data, key);
+
+    if(conv_key) {
+        free(conv_key);
+    }
+
+    if(result.ptr == NULL) {
+        Py_RETURN_FALSE;
+    }
+
+    Py_RETURN_TRUE;
+}
+    
 #if PY_MAJOR_VERSION >= 3
 
 static struct PyModuleDef jcpmodule = {

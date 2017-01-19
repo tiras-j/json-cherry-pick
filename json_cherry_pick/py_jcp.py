@@ -140,5 +140,28 @@ def pluck_list(line, key, index):
     end = scan_value(l, pos)
     return json.loads(l[pos:end])
 
+def key_exists(line, key, tokenize=True):
+
+    key = _convert_key(key)
+    data = line
+    try:
+        if tokenize and key.find('.') > 0:
+            for subkey in key.split('.'):
+                s_idx = scan_key(data, subkey)
+                e_idx = scan_value(data, s_idx)
+                # TODO: We should use integer scoping over
+                # string extraction since CPython creates
+                # a copy on non-trivial slices (anything not
+                # all or nothing slice).
+                data = data[s_idx:e_idx]
+        else:
+            s_idx = scan_key(data, key)
+            e_idx = scan_value(data, s_idx)
+    except KeyError, IndexError:
+        return False
+    return True
+    
+    
 def extract_all(line, key):
+    # TODO: Implement iterative extraction
     raise NotImplemented

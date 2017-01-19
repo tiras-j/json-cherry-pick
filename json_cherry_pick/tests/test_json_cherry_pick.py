@@ -89,6 +89,33 @@ class TestExtraction(object):
         assert jcp.extract(base, s) == expected['test_obj'][u'غرينتش']
 
 
+class TestExistence(object):
+    
+    def test_key_exists(self, testdata, jcp):
+        base, expected = testdata
+        for key in expected.keys():
+            assert jcp.key_exists(base, key)
+
+    def test_key_not_exist(self, testdata, jcp):
+        base = testdata[0]
+        assert not jcp.key_exists(base, 'invalid_key')
+
+    def test_key_not_exist_utf8(self, testdata, jcp):
+        base = testdata[0]
+        s = u'また'.encode('utf-8') if sys.version_info < (3, 0) else u'また'
+        assert not jcp.key_exists(base, s)
+
+    def test_subkey_exists(self, testdata, jcp):
+        base, expected = testdata
+        for key in expected['test_obj'].keys():
+            s = '.'.join(['test_obj', key]).encode('utf-8')
+            assert jcp.key_exists(base, s)
+
+    def test_subkey_out_of_scope(self, testdata, jcp):
+        base = testdata[0]
+        assert not jcp.key_exists(base, 'test_arr.this')
+
+        
 class TestExceptions(object):
 
     def test_key_error(self, testdata, jcp):
