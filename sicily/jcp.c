@@ -1,5 +1,6 @@
 #include <Python.h>
 #include <structmember.h>
+#include <stdio.h>
 #include "marker_map.h"
 
 typedef struct {
@@ -45,8 +46,12 @@ static PyMappingMethods MarkerMap_as_map = {
 };
 
 static PyTypeObject MarkerMapType = {
+#if PY_MAJOR_VERSION < 3
     PyObject_HEAD_INIT(NULL)
     0,
+#else
+    PyVarObject_HEAD_INIT(NULL, 0)
+#endif
     "MarkerMap",
     sizeof(MarkerMap),
     0,                         /*tp_itemsize*/
@@ -113,21 +118,21 @@ static int MarkerMap_init(MarkerMap *self, PyObject *args, PyObject *kwargs)
     }
     Py_INCREF(self->data);
     self->data_as_str = PyString_AS_STRING(self->data);
-    if(scan(&self->map, self->data_as_str, PyString_GET_SIZE(self->data)) == -1) {
+    if(scan(&self->map, self->data_as_str, PyString_GET_SIZE(self->data) - 1) == -1) {
         Py_DECREF(self->data);
         PyErr_SetString(PyExc_ValueError, "Error processing input string - is it valid JSON?");
         return -1;
     }
 #else
     // Validate unicode 1byte (i.e. ascii utf-8 only)
-    if(! (PyUnicode_Check(self->data) && PyUnicode_READY(self->data) == 0 && PyUnicode_KIND(self->data) == PyUnicode_1BYTE)) {
+    if(! (PyUnicode_Check(self->data) && PyUnicode_READY(self->data) == 0 && PyUnicode_KIND(self->data) == PyUnicode_1BYTE_KIND)) {
         PyErr_SetString(PyExc_TypeError, "Must provide a string object");
         self->data = NULL;
         return -1;
     }
     Py_INCREF(self->data);
     self->data_as_str = PyUnicode_1BYTE_DATA(self->data);
-    if(scan(&self->map, self->data_as_str, PyUnicode_GET_LENGTH(self->data)) == -1) {
+    if(scan(&self->map, self->data_as_str, PyUnicode_GET_LENGTH(self->data) - 1) == -1) {
         Py_DECREF(self->data);
         PyErr_SetString(PyExc_ValueError, "Error processing input string - is it valid JSON?");
         return -1;
@@ -159,7 +164,7 @@ static PyObject *MarkerMap_get_object(PyObject *self, PyObject *key)
     }
     k = PyString_AS_STRING(key);
 #else
-    if(!(PyUnicode_Check(key) && PyUnicode_READY(key) == 0 && PyUnicode_KIND(key) == PyUnicode_1BYTE)) {
+    if(!(PyUnicode_Check(key) && PyUnicode_READY(key) == 0 && PyUnicode_KIND(key) == PyUnicode_1BYTE_KIND)) {
         PyErr_SetString(PyExc_TypeError, "Must provide ascii string");
         return NULL;
     }
@@ -259,7 +264,6 @@ static int scan(struct marker_map *map, const char *data, size_t len)
     struct marker *stack[100] = {0}, *mark;
     size_t pos = 0, prev_pos = 0, stack_ptr = 0;
 
-    printf("Got string: %s\n", data);
     // First verify the object
     if(data[pos++] != '{')
         goto err;
@@ -272,7 +276,6 @@ static int scan(struct marker_map *map, const char *data, size_t len)
 
         prev_pos = pos;
         CONSUME_STRING(data, pos);
-        printf("Trying to insert for: %.*s\n", (int)(pos - 1 - prev_pos), data + prev_pos);
         mark = insert_marker(map, data, prev_pos, pos - 1);
         if(!mark)
             goto err;
@@ -302,21 +305,19 @@ static int scan(struct marker_map *map, const char *data, size_t len)
             while(data[pos] != '}' && data[pos] != ',') ++pos;
             mark->val_end = pos;
         }
+        printf("Got val: %.*s end at %c\n", (int)(mark->val_end - mark->val_start), data + mark->val_start, data[mark->val_end]);
         if(stack_ptr > 0) {
             mark->parent = stack[stack_ptr - 1];
         }
-        printf("Got val: %.*s\n", (int)(mark->val_end - mark->val_start), data + mark->val_start);
         // Check the terminator
         while(stack_ptr && data[pos] == '}') {
-            printf("Popping stack\n");
             mark = stack[--stack_ptr];
             mark->val_end = ++pos;
         }
         ++pos;
-        printf("Iterating at pos: %zu within len: %zu\n", pos, len);
+        printf("Iterating with pos: %zu against len: %zu\n", pos, len);
     }
 
-    printf("returning map\n");
     return 0;
 
 err:

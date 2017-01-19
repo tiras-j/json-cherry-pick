@@ -2,21 +2,18 @@
 #include <Python.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include "marker_map.h"
 
 #define DEFAULT_ELEMENTS 256
 
 static unsigned long djb2_hash(const char *s, size_t len)
 {
-    printf("Building hash for key %.*s\n", (int)len, s);
     unsigned long h = 5381;
     int i = 0;
     for(; i < len; ++i) {
         h = ((h << 5) + h) + s[i];
     }
 
-    printf("Got hash %lu\n", h);
     return h;
 }
 
@@ -41,7 +38,6 @@ struct marker *insert_marker(struct marker_map *map, const char *data, size_t st
     unsigned long pos = djb2_hash(data + start, end - start) % map->size;
     unsigned long s_pos = pos;
 
-    printf("Inserting into pos: %zu\n", pos);
     if(map->nmemb == map->size) {
         // TODO: Realloc
         return NULL;
