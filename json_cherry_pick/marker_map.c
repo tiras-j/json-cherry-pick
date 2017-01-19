@@ -19,6 +19,7 @@ struct marker {
 struct marker_map {
     struct marker *pool;
     size_t size;
+    size_t nmemb;
 };
 
 static unsigned long djb2_hash(const char *s, size_t len)
@@ -46,6 +47,7 @@ int initialize_map(struct marker_map *m)
     }
 
     m->size = DEFAULT_ELEMENTS;
+    m->nmemb = 0;
     return 0;
 }
 
@@ -55,17 +57,21 @@ struct marker *insert_marker(struct marker_map *map, const char *data, size_t st
     unsigned long s_pos = pos;
 
     printf("Inserting into pos: %zu\n", pos);
+    if(map->nmemb == map->size) {
+        // TODO: Realloc
+        return NULL;
+    }
     do {
         if(!map->pool[pos].used) {
             map->pool[pos].used = 1;
+            map->nmemb++;
             return &map->pool[pos];
         }
         if(++pos == map->size)
             pos = 0;
     } while(pos != s_pos);
 
-    printf("No free slots!\n");
-    // Eventually realloc and rehash
+    // Something happened...
     return NULL;
 }
 
