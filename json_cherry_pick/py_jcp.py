@@ -157,7 +157,7 @@ def key_exists(line, key, tokenize=True):
         else:
             s_idx = scan_key(data, key)
             e_idx = scan_value(data, s_idx)
-    except KeyError, IndexError:
+    except (KeyError, IndexError):
         return False
     return True
     
