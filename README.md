@@ -1,3 +1,5 @@
+NOTE: I've got an idea for doing this entire process much more efficiently after discussing the use cases today (thanks Dhruv!). I'll be adding it under the branch "project_sicily" (don't ask) and hopefully will have some success. Give me a week or so.
+
 # JSON Cherry-Pick
 JSON Cherry Picker - Efficiently extract sub-values from large JSON blobs.<br/>
 
