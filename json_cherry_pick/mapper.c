@@ -26,7 +26,7 @@ static int scan(struct marker_map *m, const char *data, size_t len);
 static PyObject *json_module = NULL;
 static PyObject *json_loads = NULL;
 
-static PyMethodDef jcp_methods[] = {
+static PyMethodDef mapper_methods[] = {
     {NULL}
 };
 
@@ -209,6 +209,10 @@ static PyObject *MarkerMap_get_object(PyObject *self, PyObject *key)
         return NULL;
     }
 
+    if(m->loaded_json) {
+        return m->loaded_json;
+    }
+
     m->loaded_json = call_json_loads(((MarkerMap*)self)->data_as_str, m);
     Py_INCREF(m->loaded_json);
     return m->loaded_json;
@@ -243,18 +247,18 @@ static PyObject *call_json_loads(const char *data, struct marker *m)
 
 #if PY_MAJOR_VERSION >= 3
 
-static struct PyModuleDef jcpmodule = {
+static struct PyModuleDef mapper_module = {
     PyModuleDef_HEAD_INIT,
-    "jcp",
+    "mapper",
     NULL,
     -1,
-    jcp_methods
+    mapper_methods
 };
 
 #define INITERROR return NULL
-PyMODINIT_FUNC PyInit_jcp(void)
+PyMODINIT_FUNC PyInit_mapper(void)
 #else
-PyMODINIT_FUNC initjcp(void)
+PyMODINIT_FUNC initmapper(void)
 #define INITERROR return
 #endif
 {
@@ -263,9 +267,9 @@ PyMODINIT_FUNC initjcp(void)
         INITERROR;
 
 #if PY_MAJOR_VERSION >=3
-    module = PyModule_Create(&jcpmodule);
+    module = PyModule_Create(&mapper_module);
 #else
-    module = Py_InitModule("jcp", jcp_methods);
+    module = Py_InitModule("mapper", mapper_methods);
 #endif
 
     if(module == NULL)

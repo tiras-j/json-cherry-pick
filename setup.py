@@ -1,21 +1,21 @@
 from setuptools import setup
 from setuptools import Extension
 
-version = "0.2.4"
+version = "0.3.0"
 
 jcpmodule = Extension(
-    'sicily.jcp',
-    sources=['sicily/jcp.c', 'sicily/marker_map.c'],
+    'json_cherry_pick.mapper',
+    sources=['json_cherry_pick/mapper.c', 'json_cherry_pick/marker_map.c'],
 )
 
 setup(
-    name='sicily',
+    name='json-cherry-pick',
     version=version,
-    packages=['sicily'],
+    packages=['json_cherry_pick'],
     description='JSON Cherry Picker',
-    long_description='jcp provides quick access to sub-objects inside large JSON blobs',
-    url='https://github.com/tiras-j/jcp',
-    download_url='https://github.com/tiras-j/jcp/tarball/{0}'.format(version),
+    long_description='json-cherry-pick provides quick access to sub-objects inside large JSON blobs',
+    url='https://github.com/tiras-j/json-cherry-pick',
+    download_url='https://github.com/tiras-j/json-cherry-pick/tarball/{0}'.format(version),
     author='Josh Tiras',
     author_email='jot@yelp.com',
     license='Apache2',
