@@ -130,7 +130,6 @@ static int MarkerMap_init(MarkerMap *self, PyObject *args, PyObject *kwargs)
     Py_INCREF(self->data);
     self->data_as_str = PyString_AS_STRING(self->data);
     if(scan(&self->map, self->data_as_str, PyString_GET_SIZE(self->data) - 1) == -1) {
-        Py_DECREF(self->data);
         PyErr_SetString(PyExc_ValueError, "Error processing input string - is it valid JSON?");
         return -1;
     }
@@ -144,7 +143,6 @@ static int MarkerMap_init(MarkerMap *self, PyObject *args, PyObject *kwargs)
     Py_INCREF(self->data);
     self->data_as_str = PyUnicode_1BYTE_DATA(self->data);
     if(scan(&self->map, self->data_as_str, PyUnicode_GET_LENGTH(self->data) - 1) == -1) {
-        Py_DECREF(self->data);
         PyErr_SetString(PyExc_ValueError, "Error processing input string - is it valid JSON?");
         return -1;
     }
@@ -211,7 +209,9 @@ static PyObject *MarkerMap_get_object(PyObject *self, PyObject *key)
         return NULL;
     }
 
-    return call_json_loads(((MarkerMap*)self)->data_as_str, m);
+    m->loaded_json = call_json_loads(((MarkerMap*)self)->data_as_str, m);
+    Py_INCREF(m->loaded_json);
+    return m->loaded_json;
 }
 
 static PyObject *MarkerMap_key_exists(MarkerMap *self, PyObject *args)
@@ -283,8 +283,11 @@ PyMODINIT_FUNC initjcp(void)
 }
 
 /*************************** Scan ******************************************/
-#define CONSUME_STRING(d, p) while((d)[(p)++] != '"') { \
-                                if((d)[(p)] == '\\') {++(p); ++(p);}}
+//TODO: Make the string consumption more resilient
+
+#define CONSUME_STRING(d, p) while((d)[(p)] != '"') { \
+                                if((d)[(p)] == '\\') ++(p); \
+                                ++(p);} ++(p);
 
 #define CONSUME_LIST(d, p) { int depth = 1;                                         \
                             while(depth) {                                          \
@@ -317,6 +320,7 @@ static int scan(struct marker_map *map, const char *data, size_t len)
             goto err;
         mark->key_start = prev_pos; // dodge "
         mark->key_end = pos - 1;
+        //printf("Got key: %.*s\n", (int)(mark->key_end - mark->key_start), data + mark->key_start);
         // Find ':'
         while(isspace(data[pos])) ++pos;
         if(data[pos++] != ':')
@@ -326,8 +330,16 @@ static int scan(struct marker_map *map, const char *data, size_t len)
         mark->val_start = pos;
         switch(data[pos++]) {
         case '{':
-            stack[stack_ptr++] = mark;
-            continue;
+            // Check empty dict case
+            // TODO: Technically there could be empty space between the '{}'
+            // But json library doesn't do that... still we should check for it
+            if(data[pos] == '}') {
+                mark->val_end = pos++;
+                break;
+            } else {
+                stack[stack_ptr++] = mark;
+                continue;
+            }
         case '"':
             CONSUME_STRING(data, pos);
             mark->val_end = pos;
@@ -340,6 +352,7 @@ static int scan(struct marker_map *map, const char *data, size_t len)
             while(data[pos] != '}' && data[pos] != ',') ++pos;
             mark->val_end = pos;
         }
+        //printf("Got val: %.*s\n", (int)(mark->val_end - mark->val_start), data + mark->val_start);
         if(stack_ptr > 0) {
             mark->parent = stack[stack_ptr - 1];
         }
@@ -349,6 +362,7 @@ static int scan(struct marker_map *map, const char *data, size_t len)
             mark->val_end = ++pos;
         }
         ++pos;
+        //printf("Iterating at %zu of %zu at val %c\n", pos, len, data[pos]);
     }
 
     return 0;

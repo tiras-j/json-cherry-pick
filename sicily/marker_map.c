@@ -2,6 +2,7 @@
 #include <Python.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "marker_map.h"
 
 #define DEFAULT_ELEMENTS 256
@@ -83,14 +84,17 @@ struct marker *insert_marker(struct marker_map *map, const char *data, size_t st
     ssize_t pos;
 
     if(map->nmemb == map->size) {
+        //printf("Realloc... ");
         if(realloc_map(map) == -1)
             return NULL;
+        //printf("success!\n");
     }
 
     if((pos = locate_free_slot(map, hash)) == -1)
         return NULL;
 
     map->pool[pos].used = 1;
+    map->pool[pos].hash = hash;
     map->nmemb++;
     return &map->pool[pos];
 }
