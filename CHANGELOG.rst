@@ -1,5 +1,15 @@
 Release Notes
 =============
+0.3.1
+-----
+
+* Tag target for build
+
+0.3.0
+-----
+
+* Merge Project Sicily
+
 0.2.0
 -----
 
