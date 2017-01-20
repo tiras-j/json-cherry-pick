@@ -17,6 +17,50 @@ static unsigned long djb2_hash(const char *s, size_t len)
     return h;
 }
 
+static ssize_t locate_free_slot(struct marker_map *map, unsigned long hash)
+{
+    unsigned long pos, s_pos;
+    pos = s_pos = hash % map->size;
+    
+    do {
+        if(!map->pool[pos].used)
+            return pos;
+        if(++pos == map->size)
+            pos = 0;
+    } while(pos != s_pos);
+
+    return -1;
+}
+    
+static int realloc_map(struct marker_map *map)
+{
+    size_t i = 0, slot = 0, old_size = map->size;
+    struct marker *new_pool = calloc(2*old_size, sizeof(struct marker));
+    struct marker *old_pool = map->pool;
+    
+    if(new_pool == NULL)
+        return -1;
+
+    map->pool = new_pool;
+    map->size = 2 * old_size;
+
+    for(; i < old_size; ++i) {
+        if(old_pool[i].used) {
+            if((slot = locate_free_slot(map, old_pool[i].hash)) == -1)
+                goto realloc_err;
+            memcpy(&new_pool[slot], &old_pool[i], sizeof(struct marker));
+        }
+    }
+    free(old_pool);
+    return 0;
+
+realloc_err:
+    map->pool = old_pool;
+    map->size = old_size;
+    free(new_pool);
+    return -1;
+}
+
 int initialize_map(struct marker_map *m)
 {
     if(m == NULL) {
@@ -35,25 +79,20 @@ int initialize_map(struct marker_map *m)
 
 struct marker *insert_marker(struct marker_map *map, const char *data, size_t start, size_t end)
 {
-    unsigned long pos = djb2_hash(data + start, end - start) % map->size;
-    unsigned long s_pos = pos;
+    unsigned long hash = djb2_hash(data + start, end - start);
+    ssize_t pos;
 
     if(map->nmemb == map->size) {
-        // TODO: Realloc
-        return NULL;
+        if(realloc_map(map) == -1)
+            return NULL;
     }
-    do {
-        if(!map->pool[pos].used) {
-            map->pool[pos].used = 1;
-            map->nmemb++;
-            return &map->pool[pos];
-        }
-        if(++pos == map->size)
-            pos = 0;
-    } while(pos != s_pos);
 
-    // Something happened...
-    return NULL;
+    if((pos = locate_free_slot(map, hash)) == -1)
+        return NULL;
+
+    map->pool[pos].used = 1;
+    map->nmemb++;
+    return &map->pool[pos];
 }
 
 struct marker *fetch_marker(struct marker_map *map, const char *data, const char *key)

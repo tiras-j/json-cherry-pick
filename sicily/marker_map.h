@@ -5,6 +5,7 @@
 struct marker {
     PyObject *loaded_json;
     struct marker *parent;
+    unsigned long hash;
     size_t key_start;
     size_t key_end;
     size_t val_start;

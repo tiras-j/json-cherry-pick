@@ -1,6 +1,5 @@
 #include <Python.h>
 #include <structmember.h>
-#include <stdio.h>
 #include "marker_map.h"
 
 typedef struct {
@@ -12,6 +11,7 @@ typedef struct {
 
 // MarkerMap functions
 static Py_ssize_t MarkerMap_len(PyObject *self);
+static int MarkerMap_contains(PyObject *self, PyObject *key);
 static PyObject *MarkerMap_get_object(PyObject *self, PyObject *key);
 static PyObject *MarkerMap_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 static int MarkerMap_init(MarkerMap *self, PyObject *args, PyObject *kwargs);
@@ -19,7 +19,6 @@ static PyObject *MarkerMap_key_exists(MarkerMap *self, PyObject *args);
 static void MarkerMap_dealloc(MarkerMap *self);
 
 // Module functions
-//static PyObject *jcp_loads(PyObject *self, PyObject *args);
 static PyObject *call_json_loads(const char *data, struct marker *m);
 static int scan(struct marker_map *m, const char *data, size_t len);
 
@@ -28,7 +27,6 @@ static PyObject *json_module = NULL;
 static PyObject *json_loads = NULL;
 
 static PyMethodDef jcp_methods[] = {
-//    {"loads", (PyCFunction) jcp_loads, METH_VARARGS, "Create a new MarkerMap on provided string"},
     {NULL}
 };
 
@@ -37,6 +35,19 @@ static PyMethodDef MarkerMap_methods[] = {
      "Check if a key is in the map without loading it"
     },
     {NULL}
+};
+
+static PySequenceMethods MarkerMap_as_sequence = {
+    MarkerMap_len,      /* sq_length */
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    MarkerMap_contains,  /* sq_contains */
+    0,
+    0
 };
 
 static PyMappingMethods MarkerMap_as_map = {
@@ -62,7 +73,7 @@ static PyTypeObject MarkerMapType = {
     0,                         /*tp_compare*/
     0,                         /*tp_repr*/
     0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
+    &MarkerMap_as_sequence,    /*tp_as_sequence*/
     &MarkerMap_as_map,          /*tp_as_mapping*/
     0,                         /*tp_hash */
     0,                         /*tp_call*/
@@ -151,6 +162,31 @@ static void MarkerMap_dealloc(MarkerMap *self)
 static Py_ssize_t MarkerMap_len(PyObject *self)
 {
     return ((MarkerMap*)self)->map.nmemb;
+}
+
+static int MarkerMap_contains(PyObject *self, PyObject *key)
+{
+    const char *k;
+    struct marker *m = NULL;
+#if PY_MAJOR_VERSION < 3
+    if(!PyString_Check(key)) {
+        PyErr_SetString(PyExc_TypeError, "Keys must be string type");
+        return -1;
+    }
+    k = PyString_AS_STRING(key);
+#else
+    if(!(PyUnicode_Check(key) && PyUnicode_READY(key) == 0 && PyUnicode_KIND(key) == PyUnicode_1BYTE_KIND)) {
+        PyErr_SetString(PyExc_TypeError, "Must provide utf-8 encoded string");
+        return -1;
+    }
+    k = PyUnicode_1BYTE_DATA(key);
+#endif
+
+    if((m = fetch_marker(&((MarkerMap*)self)->map, ((MarkerMap*)self)->data_as_str, k)) == NULL) {
+        return 0;
+    }
+    return 1;
+
 }
 
 static PyObject *MarkerMap_get_object(PyObject *self, PyObject *key)
@@ -281,7 +317,6 @@ static int scan(struct marker_map *map, const char *data, size_t len)
             goto err;
         mark->key_start = prev_pos; // dodge "
         mark->key_end = pos - 1;
-        printf("Got key: %.*s\n", (int)(mark->key_end - mark->key_start), data + mark->key_start);
         // Find ':'
         while(isspace(data[pos])) ++pos;
         if(data[pos++] != ':')
@@ -305,7 +340,6 @@ static int scan(struct marker_map *map, const char *data, size_t len)
             while(data[pos] != '}' && data[pos] != ',') ++pos;
             mark->val_end = pos;
         }
-        printf("Got val: %.*s end at %c\n", (int)(mark->val_end - mark->val_start), data + mark->val_start, data[mark->val_end]);
         if(stack_ptr > 0) {
             mark->parent = stack[stack_ptr - 1];
         }
@@ -315,7 +349,6 @@ static int scan(struct marker_map *map, const char *data, size_t len)
             mark->val_end = ++pos;
         }
         ++pos;
-        printf("Iterating with pos: %zu against len: %zu\n", pos, len);
     }
 
     return 0;
