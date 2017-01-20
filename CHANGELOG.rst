@@ -1,5 +1,10 @@
 Release Notes
 =============
+0.3.2
+-----
+
+* Add loads wrapper
+
 0.3.1
 -----
 
