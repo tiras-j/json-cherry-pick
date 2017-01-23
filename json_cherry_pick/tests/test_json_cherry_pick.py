@@ -18,5 +18,5 @@ class TestBasicExtraction(unittest.TestCase):
     def test_basic_extraction(self):
         sut = jcp.loads(json.dumps(self.ascii_basic))
 
-        for k, v in self.ascii_basic.iteritems():
+        for k, v in self.ascii_basic.items():
             self.assertEqual(sut[k], v)
