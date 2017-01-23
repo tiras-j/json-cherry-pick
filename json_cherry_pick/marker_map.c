@@ -10,7 +10,7 @@
 static unsigned long djb2_hash(const char *s, size_t len)
 {
     unsigned long h = 5381;
-    int i = 0;
+    size_t i = 0;
     for(; i < len; ++i) {
         h = ((h << 5) + h) + s[i];
     }
@@ -20,7 +20,7 @@ static unsigned long djb2_hash(const char *s, size_t len)
 
 static ssize_t locate_free_slot(struct marker_map *map, unsigned long hash)
 {
-    unsigned long pos, s_pos;
+    ssize_t pos, s_pos;
     pos = s_pos = hash % map->size;
     
     do {

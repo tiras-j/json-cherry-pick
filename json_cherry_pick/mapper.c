@@ -141,7 +141,7 @@ static int MarkerMap_init(MarkerMap *self, PyObject *args, PyObject *kwargs)
         return -1;
     }
     Py_INCREF(self->data);
-    self->data_as_str = PyUnicode_1BYTE_DATA(self->data);
+    self->data_as_str = (const char *)PyUnicode_1BYTE_DATA(self->data);
     if(scan(&self->map, self->data_as_str, PyUnicode_GET_LENGTH(self->data) - 1) == -1) {
         PyErr_SetString(PyExc_ValueError, "Error processing input string - is it valid JSON?");
         return -1;
@@ -177,7 +177,7 @@ static int MarkerMap_contains(PyObject *self, PyObject *key)
         PyErr_SetString(PyExc_TypeError, "Must provide utf-8 encoded string");
         return -1;
     }
-    k = PyUnicode_1BYTE_DATA(key);
+    k = (const char *)PyUnicode_1BYTE_DATA(key);
 #endif
 
     if((m = fetch_marker(&((MarkerMap*)self)->map, ((MarkerMap*)self)->data_as_str, k)) == NULL) {
@@ -202,7 +202,7 @@ static PyObject *MarkerMap_get_object(PyObject *self, PyObject *key)
         PyErr_SetString(PyExc_TypeError, "Must provide ascii string");
         return NULL;
     }
-    k = PyUnicode_1BYTE_DATA(key);
+    k = (const char *)PyUnicode_1BYTE_DATA(key);
 #endif
     if((m = fetch_marker(&((MarkerMap *)self)->map, ((MarkerMap*)self)->data_as_str, k)) == NULL) {
         PyErr_SetString(PyExc_KeyError, "Key not found");
