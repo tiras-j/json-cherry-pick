@@ -34,6 +34,5 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     ext_modules=[jcpmodule],
-    setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
+    test_suite='json_cherry_pick.tests',
 )

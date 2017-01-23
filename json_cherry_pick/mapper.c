@@ -338,7 +338,7 @@ static int scan(struct marker_map *map, const char *data, size_t len)
             // TODO: Technically there could be empty space between the '{}'
             // But json library doesn't do that... still we should check for it
             if(data[pos] == '}') {
-                mark->val_end = pos++;
+                mark->val_end = ++pos;
                 break;
             } else {
                 stack[stack_ptr++] = mark;
