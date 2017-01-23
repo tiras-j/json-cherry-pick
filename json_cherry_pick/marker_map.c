@@ -35,7 +35,7 @@ static ssize_t locate_free_slot(struct marker_map *map, unsigned long hash)
     
 static int realloc_map(struct marker_map *map)
 {
-    size_t i = 0, slot = 0, old_size = map->size;
+    ssize_t i = 0, slot = 0, old_size = map->size;
     struct marker *new_pool = calloc(2*old_size, sizeof(struct marker));
     struct marker *old_pool = map->pool;
     
