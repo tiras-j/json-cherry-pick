@@ -1,5 +1,5 @@
-#include <Python.h>
-#include <structmember.h>
+#include "Python.h"
+#include "structmember.h"
 #include "marker_map.h"
 
 typedef struct {

@@ -1,8 +1,5 @@
 // Flat hash map for storing blob markers 
-#include <Python.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include "Python.h"
 #include "marker_map.h"
 
 #define DEFAULT_ELEMENTS 256
