@@ -9,12 +9,10 @@ python setup.py sdist
 
 # debug print
 ls wheelhouse
-ls dist
 
 # Upload to twine
 if ! [[ -z "$TRAVIS_TAG" ]] ; then
     echo "Uploading to PYPI"
-    twine upload dist/* -u kehtnok -p $PYPI_PW
     twine upload wheelhouse/* -u kehtnok -p $PYPI_PW
 else
     echo "No tag, not running upload"
