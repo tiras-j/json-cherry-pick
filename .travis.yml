@@ -1,29 +1,18 @@
 language: python
 matrix:
   include:
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
-           PRE_CMD=linux32
-
-
+  - sudo: required
+    services:
+    - docker
+    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+  - sudo: required
+    services:
+    - docker
+    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686 PRE_CMD=linux32
 install:
-  - docker pull $DOCKER_IMAGE
-
+- docker pull $DOCKER_IMAGE
 script:
-  - docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/.travis/build-wheels.sh
-
-deploy:
-  provider: pypi
-  user: kehtnok
-  password:
-    secure: GzXKk9uQqBowAvdNJiiFYwyXn/NEiR5UglXV9Eek+GIMAv9bpXmrhCM0PXI2yMViv6iiDZbibxJJvKNEMnP11aN/1LMQTVU/jOoBJJXYCnpxEBC4iike9upC7ntQKmWMaKVcPaynpui6dMKOthA+m0qdKWkFsFVllwIrx2tVMdmLE8R7SIP2bIr/whz6NAXdIvkQu9e/7HUvS96J7CqNzKE9NkfsPfmNMyaPi17JnsBXsGYNg9i2qbGcyawiRwOpGEmcDLd0+gGEF1coRv6xSl9TRqv7MvzycTU6qjqTt26o4Tf/6e/gk2I5AfkyVSqCRbwhxTuq3ceHYGwYR4Db8YEQx0uenGJtdJw1jXoz9wjfchAsp6QwY7reYVzrO06Y8ir+xWUpXkW4MGXKDaRP/UvD8OX50ItuKZjrPqnl4sM8m1a++2Qzc/8kGMf2bNP8TDSVS4HkY/ooYiVqpzmTydKTHBOgE9Evhqns1F4kV815vQE5exABbzpjCIakmS4aI/4r/lPOrNTYi+vHDXse69P2jbf2s/5qyQrAUEwff7tJNLXVuTxlvVYxoNmVqFJL6vOfAqGM+BqjceqN3O/jeWnK0LmF7R4OVA8CWCNs7DRji6Q+yPXVHYlRu6JYmMmoxwuALxmzYRbIWxtbIMYntNr6mmwGONG01AWVZF1yaHI=
-  file: wheelhouse/*.whl
-  on:
-    tags: true
-  skip_cleanup: true
+- ./.travis/run.sh
+env:
+  global:
+    secure: Ko5kC6I1EfnU35aLIJE0UL/6A/r5DQIrqWVW9DADFhG/kXUiZmzK4N4xVMJL34EW6cVSSHxMflOJAuESVcwo92CTi3YE/MUD170bV/KhhcHXbq8vku/V3Gw9SoOAQa8MfG59PgM40vJSTMX0uxBhbLB9laU6Z7Gu+/3FglV1PhE3zUEKi58T2bEHceheAtmUu6hWZBDwhqI1CW7UP2jN2g2WVuiowtBL+GWlt8VlfnWrc3SKdpQYnCGhNks0pm+4FaLsNUkhATYtd7hIjTAKvo1q5kfG0JaV5clI0WpD4rIyx6Xnj3m9ulYl5EOmh2uAaYW3T6ty4piDkxL7Q6lYgEXmzokWWt3cPMx0wgeBKOHlyurb2gkZfQzdC+aS/zEFMjBsHLCSpqhzfb4IdCrUlRNwTaxooausEpzU1dZH3snwfzFn4AEn4nHPF3AStivFrqPpWcBmP7waH7UGzRalg00j4tuGvN1X0LlQOi2URE20+X8WFyn0j0IpUMZ7wqCaSiMffbsVQdzbNiw5UmFtX7f2zH/hE8rOGEvEFiXQCcJgFSYAaVCatRgaqV00IJh5IlfrR2zyTNhC1p2EkklgvFhIzU0r+306F+7lCnj4qaIPvHKNGeT1QmAo3w/iOl2nIqcjwpjEl9Ke0Zdsk4P57Dbx5aufFpPay4EhWrPvpy4=
