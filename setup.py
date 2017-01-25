@@ -11,7 +11,7 @@ jcpmodule = Extension(
 setup(
     name='json-cherry-pick',
     version=version,
-    packages=['json_cherry_pick'],
+    packages=['json_cherry_pick', 'json_cherry_pick.tests'],
     description='JSON Cherry Picker',
     long_description='json-cherry-pick provides quick access to sub-objects inside large JSON blobs',
     url='https://github.com/tiras-j/json-cherry-pick',

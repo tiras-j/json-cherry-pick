@@ -14,6 +14,6 @@ done
 #done
 
 for PYBIN in /opt/python/*/bin/; do
-#    ${PYBIN}/pip install json-cherry-pick --no-index -f /io/wheelhouse
-    (cd /io/; ${PYBIN}/python setup.py test; rm -rf build/)
+    ${PYBIN}/pip install json-cherry-pick --no-index -f /io/wheelhouse
+    (cd $HOME; ${PYBIN}/python setup.py test)
 done

@@ -1,1 +1,6 @@
 include json_cherry_pick/marker_map.h
+include *.py
+include *.txt
+include *.md
+include *.rst
+include MANIFEST.in
