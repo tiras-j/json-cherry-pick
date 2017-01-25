@@ -2,22 +2,22 @@ language: python
 matrix:
   include:
   - os: linux
-    dist: trusty
+    dist: lucid
     python: '2.6'
   - os: linux
-    dist: trusty
+    dist: lucid
     python: '2.7'
   - os: linux
-    dist: trusty
+    dist: lucid
     python: '3.3'
   - os: linux
-    dist: trusty
+    dist: lucid
     python: '3.4'
   - os: linux
-    dist: trusty
+    dist: lucid
     python: '3.5'
   - os: linux
-    dist: trusty
+    dist: lucid
     python: '3.6'
 install:
 - "./.travis/install.sh"
