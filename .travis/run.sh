@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -x
+set -e +x
 
 # Build wheels -> ./wheelhouse/*.whl
 docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/.travis/build-wheels.sh
