@@ -210,11 +210,15 @@ static PyObject *MarkerMap_get_object(PyObject *self, PyObject *key)
     }
 
     if(m->loaded_json) {
+        // We already have the object but we need to INCREF before
+        // returning so we don't have refcount issues when the value
+        // get's DECREF'd by the owner
+        Py_INCREF(m->loaded_json);
         return m->loaded_json;
     }
 
-    m->loaded_json = call_json_loads(((MarkerMap*)self)->data_as_str, m);
-    Py_INCREF(m->loaded_json);
+    if((m->loaded_json = call_json_loads(((MarkerMap*)self)->data_as_str, m)) != NULL)
+        Py_INCREF(m->loaded_json);
     return m->loaded_json;
 }
 
