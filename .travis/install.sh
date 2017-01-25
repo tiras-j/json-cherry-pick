@@ -1,3 +1,5 @@
 #!/bin/bash
-# Currently not needed
+
+pip install --upgrade setuptools
+
 exit 0
