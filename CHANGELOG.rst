@@ -1,5 +1,16 @@
 Release Notes
 =============
+0.3.15
+------
+
+* Fix REFCOUNT issue with returning cached JSON objects
+
+0.3.14
+------
+
+* Consistent build pipeline established w/ Travis CI
+* Builds 0.3.3->0.3.13 testing for tagged deployment
+
 0.3.2
 -----
 
