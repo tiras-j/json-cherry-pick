@@ -1,5 +1,10 @@
 Release Notes
 =============
+0.3.16
+------
+
+* Add support for `get(key,[default])` operations
+
 0.3.15
 ------
 
