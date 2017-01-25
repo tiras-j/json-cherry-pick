@@ -21,6 +21,13 @@ class TestBasicExtraction(unittest.TestCase):
         for k, v in ascii_basic.items():
             self.assertEqual(sut[k], v)
 
+    def test_get(self):
+        sut = jcp.loads(json.dumps(ascii_basic))
+
+        self.assertEqual(sut.get('test_str'), ascii_basic.get('test_str'))
+        self.assertEqual(sut.get('blah'), None)
+        self.assertEqual(sut.get('blah', 1), 1)
+
 class TestReification(unittest.TestCase):
     
     def test_multiple_reassignment(self):

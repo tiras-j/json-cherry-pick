@@ -12,10 +12,11 @@ typedef struct {
 // MarkerMap functions
 static Py_ssize_t MarkerMap_len(PyObject *self);
 static int MarkerMap_contains(PyObject *self, PyObject *key);
-static PyObject *MarkerMap_get_object(PyObject *self, PyObject *key);
+static PyObject *MarkerMap_subscript(PyObject *self, PyObject *key);
 static PyObject *MarkerMap_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 static int MarkerMap_init(MarkerMap *self, PyObject *args, PyObject *kwargs);
 static PyObject *MarkerMap_key_exists(MarkerMap *self, PyObject *args);
+static PyObject *MarkerMap_get(MarkerMap *self, PyObject *args, PyObject *kwargs);
 static void MarkerMap_dealloc(MarkerMap *self);
 
 // Module functions
@@ -33,6 +34,9 @@ static PyMethodDef mapper_methods[] = {
 static PyMethodDef MarkerMap_methods[] = {
     {"key_exists", (PyCFunction) MarkerMap_key_exists, METH_VARARGS,
      "Check if a key is in the map without loading it"
+    },
+    {"get", (PyCFunction) MarkerMap_get, METH_VARARGS | METH_KEYWORDS,
+     "Return the associated value, or None/default if provided"
     },
     {NULL}
 };
@@ -52,7 +56,7 @@ static PySequenceMethods MarkerMap_as_sequence = {
 
 static PyMappingMethods MarkerMap_as_map = {
     MarkerMap_len,
-    MarkerMap_get_object,
+    MarkerMap_subscript,
     0
 };
 
@@ -187,7 +191,35 @@ static int MarkerMap_contains(PyObject *self, PyObject *key)
 
 }
 
-static PyObject *MarkerMap_get_object(PyObject *self, PyObject *key)
+static PyObject *MarkerMap_get(MarkerMap *self, PyObject *args, PyObject *kwargs)
+{
+    const char *key;
+    struct marker *m = NULL;
+    PyObject *def = NULL;
+
+    static char *kwlist[] = {"key", "default", NULL};
+
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|O", kwlist, &key, &def))
+        return NULL;
+
+    if((m = fetch_marker(&self->map, self->data_as_str, key)) == NULL) {
+        if(def)
+            return def;
+        Py_RETURN_NONE;
+    }
+
+    if(m->loaded_json) {
+        Py_INCREF(m->loaded_json);
+        return m->loaded_json;
+    }
+
+    if((m->loaded_json = call_json_loads(self->data_as_str, m)) != NULL) {
+        Py_INCREF(m->loaded_json);
+    }
+    return m->loaded_json;
+}
+    
+static PyObject *MarkerMap_subscript(PyObject *self, PyObject *key)
 {
     const char *k;
     struct marker *m = NULL;
@@ -217,8 +249,9 @@ static PyObject *MarkerMap_get_object(PyObject *self, PyObject *key)
         return m->loaded_json;
     }
 
-    if((m->loaded_json = call_json_loads(((MarkerMap*)self)->data_as_str, m)) != NULL)
+    if((m->loaded_json = call_json_loads(((MarkerMap*)self)->data_as_str, m)) != NULL) {
         Py_INCREF(m->loaded_json);
+    }
     return m->loaded_json;
 }
 
