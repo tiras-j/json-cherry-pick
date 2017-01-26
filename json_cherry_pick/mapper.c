@@ -16,7 +16,7 @@ static PyObject *MarkerMap_subscript(PyObject *self, PyObject *key);
 static PyObject *MarkerMap_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 static int MarkerMap_init(MarkerMap *self, PyObject *args, PyObject *kwargs);
 static PyObject *MarkerMap_key_exists(MarkerMap *self, PyObject *args);
-static PyObject *MarkerMap_get(MarkerMap *self, PyObject *args, PyObject *kwargs);
+static PyObject *MarkerMap_get(MarkerMap *self, PyObject *args);
 static void MarkerMap_dealloc(MarkerMap *self);
 
 // Module functions
@@ -35,7 +35,7 @@ static PyMethodDef MarkerMap_methods[] = {
     {"key_exists", (PyCFunction) MarkerMap_key_exists, METH_VARARGS,
      "Check if a key is in the map without loading it"
     },
-    {"get", (PyCFunction) MarkerMap_get, METH_VARARGS | METH_KEYWORDS,
+    {"get", (PyCFunction) MarkerMap_get, METH_VARARGS,
      "Return the associated value, or None/default if provided"
     },
     {NULL}
@@ -191,20 +191,16 @@ static int MarkerMap_contains(PyObject *self, PyObject *key)
 
 }
 
-static PyObject *MarkerMap_get(MarkerMap *self, PyObject *args, PyObject *kwargs)
+static PyObject *MarkerMap_get(MarkerMap *self, PyObject *args)
 {
     const char *key;
     struct marker *m = NULL;
-    PyObject *def = NULL;
+    PyObject *def = Py_None;
 
-    static char *kwlist[] = {"key", "default", NULL};
-
-    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "s|O", kwlist, &key, &def))
+    if(!PyArg_ParseTuple(args, "s|O", &key, &def))
         return NULL;
 
     if((m = fetch_marker(&self->map, self->data_as_str, key)) == NULL) {
-        if(def == NULL)
-            def = Py_None;
         Py_INCREF(def);
         return def;
     }

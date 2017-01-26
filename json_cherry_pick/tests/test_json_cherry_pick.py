@@ -28,6 +28,16 @@ class TestBasicExtraction(unittest.TestCase):
         self.assertEqual(sut.get('blah'), None)
         self.assertEqual(sut.get('blah', 1), 1)
 
+    def test_get_hold_default_ref(self):
+        sut = jcp.loads(json.dumps(ascii_basic))
+        d = 'this is the default'
+
+        x = sut.get('blah', d)
+        del d
+        del x
+        self.assertTrue(True)
+
+
 class TestReification(unittest.TestCase):
     
     def test_multiple_reassignment(self):
