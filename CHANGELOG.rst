@@ -1,5 +1,10 @@
 Release Notes
 =============
+0.3.20
+------
+
+* Fix missing traverse/clear methods on type definition
+
 0.3.19
 ------
 
