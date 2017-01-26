@@ -20,6 +20,13 @@ u'there'           #(Here the value is JSON decoded)
 ```
 This is of course a trivial example.
 
+JSON Cherry-Pick also flattens nested dictionaries, such that checking for subkeys only requires the subkey itself and not the parents:
+```python
+>>> obj = json_cherry_pick.loads('{"hello": {"are": {"you": "there?"}}}')
+>>> 'you' in obj
+True
+```
+
 ## Performance
 JSON Cherry-Pick performance advantage increases with the size of the objects being processed. An anecdotal example processing ~3.5GB of objects between 10KB->1MB shows a 10x performance increase for selectively rejecting objects based on existence of a subset of keys. However, the performance advantage decreases with the percentage of the object that is loaded, approaching a negative advantage if *every* key is loaded (since this results in 100% object creation + 2x input data scan)
 
