@@ -1,5 +1,10 @@
 Release Notes
 =============
+0.3.21
+------
+
+* Fixed segfault from not setting data reference pointer NULL before tp_free
+
 0.3.20
 ------
 
