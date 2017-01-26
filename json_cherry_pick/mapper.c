@@ -203,9 +203,10 @@ static PyObject *MarkerMap_get(MarkerMap *self, PyObject *args, PyObject *kwargs
         return NULL;
 
     if((m = fetch_marker(&self->map, self->data_as_str, key)) == NULL) {
-        if(def)
-            return def;
-        Py_RETURN_NONE;
+        if(def == NULL)
+            def = Py_None;
+        Py_INCREF(def);
+        return def;
     }
 
     if(m->loaded_json) {
