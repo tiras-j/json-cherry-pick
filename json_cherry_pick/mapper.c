@@ -161,11 +161,13 @@ static int MarkerMap_traverse(MarkerMap *self, visitproc visit, void *arg)
     PyObject *ljson;
     ssize_t i = 0;
     
+    printf("Starting traverse\n");
     Py_VISIT(self->data);
     while (map_iter(&self->map, &i, &ljson)) {
         Py_VISIT(ljson);
     }
 
+    printf("Done traverse\n");
     return 0;
 }
 
@@ -174,23 +176,27 @@ static int MarkerMap_clear(MarkerMap *self)
     PyObject *ljson;
     ssize_t i = 0;
     
+    printf("Starting Clear\n");
     Py_CLEAR(self->data);
     while(map_iter(&self->map, &i, &ljson)) {
         Py_CLEAR(ljson);
     }
 
+    printf("Done Clear\n");
     return 0;
 }
     
 static void MarkerMap_dealloc(MarkerMap *self)
 {
+    printf("Starting dealloc\n");
     MarkerMap_clear(self);
     dealloc_map(&self->map);
-#if PY_MAJOR_VERSION < 3
-    self->ob_type->tp_free((PyObject *)self);
-#else
+    // Necessary to set this pointer NULL
+    // otherwise tp_free() tries to dealloc it
+    // but the data is owned by the origin PyString object
+    self->data_as_str = NULL;
     Py_TYPE(self)->tp_free((PyObject *)self);
-#endif
+    printf("Done with dealloc\n");
 }
 
 static Py_ssize_t MarkerMap_len(PyObject *self)
