@@ -89,8 +89,8 @@ static PyTypeObject MarkerMapType = {
     0,                         /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,        /*tp_flags*/
     "Map of JSON string key indices",        /* tp_doc */
-    0,                       /* tp_traverse */
-    0,                       /* tp_clear */
+    (traverseproc)MarkerMap_traverse,                       /* tp_traverse */
+    (inquiry)MarkerMap_clear,                       /* tp_clear */
     0,                       /* tp_richcompare */
     0,                       /* tp_weaklistoffset */
     0,                       /* tp_iter */
