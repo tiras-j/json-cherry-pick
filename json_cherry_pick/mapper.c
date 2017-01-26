@@ -18,6 +18,8 @@ static int MarkerMap_init(MarkerMap *self, PyObject *args, PyObject *kwargs);
 static PyObject *MarkerMap_key_exists(MarkerMap *self, PyObject *args);
 static PyObject *MarkerMap_get(MarkerMap *self, PyObject *args);
 static void MarkerMap_dealloc(MarkerMap *self);
+static int MarkerMap_clear(MarkerMap *self);
+static int MarkerMap_traverse(MarkerMap *self, visitproc visit, void *arg);
 
 // Module functions
 static PyObject *call_json_loads(const char *data, struct marker *m);
@@ -85,7 +87,7 @@ static PyTypeObject MarkerMapType = {
     0,                         /*tp_getattro*/
     0,                         /*tp_setattro*/
     0,                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT,        /*tp_flags*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,        /*tp_flags*/
     "Map of JSON string key indices",        /* tp_doc */
     0,                       /* tp_traverse */
     0,                       /* tp_clear */
@@ -154,12 +156,41 @@ static int MarkerMap_init(MarkerMap *self, PyObject *args, PyObject *kwargs)
     return 0;
 }
 
+static int MarkerMap_traverse(MarkerMap *self, visitproc visit, void *arg)
+{
+    PyObject *ljson;
+    ssize_t i = 0;
+    
+    Py_VISIT(self->data);
+    while (map_iter(&self->map, &i, &ljson)) {
+        Py_VISIT(ljson);
+    }
+
+    return 0;
+}
+
+static int MarkerMap_clear(MarkerMap *self)
+{
+    PyObject *ljson;
+    ssize_t i = 0;
+    
+    Py_CLEAR(self->data);
+    while(map_iter(&self->map, &i, &ljson)) {
+        Py_CLEAR(ljson);
+    }
+
+    return 0;
+}
+    
 static void MarkerMap_dealloc(MarkerMap *self)
 {
+    MarkerMap_clear(self);
     dealloc_map(&self->map);
-    Py_DECREF(self->data);
-    self->data_as_str = NULL;
+#if PY_MAJOR_VERSION < 3
     self->ob_type->tp_free((PyObject *)self);
+#else
+    Py_TYPE(self)->tp_free((PyObject *)self);
+#endif
 }
 
 static Py_ssize_t MarkerMap_len(PyObject *self)

@@ -115,17 +115,24 @@ struct marker *fetch_marker(struct marker_map *map, const char *data, const char
     return NULL;
 }
 
-void dealloc_map(struct marker_map *m)
+void dealloc_map(struct marker_map *map)
 {
-    size_t i = 0;
-    if(m == NULL || m->pool == NULL)
+    if(map == NULL || map->pool == NULL)
         return;
 
-    for(; i < m->size; ++i) {
-        Py_XDECREF(m->pool[i].loaded_json);
-    }
-
-    free(m->pool);
+    free(map->pool);
     return;
 }
 
+int map_iter(struct marker_map *map, ssize_t *i, PyObject **ljson)
+{
+    if(map->pool == NULL)
+        return 0;
+
+    if(*i == map->size)
+        return 0;
+
+    *ljson = map->pool[(*i)++].loaded_json;
+
+    return 1;
+}
