@@ -1,5 +1,10 @@
 Release Notes
 =============
+0.3.18
+------
+
+* Properly call tp_free on dealloc
+
 0.3.17
 ------
 
