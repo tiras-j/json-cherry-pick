@@ -159,6 +159,7 @@ static void MarkerMap_dealloc(MarkerMap *self)
     dealloc_map(&self->map);
     Py_DECREF(self->data);
     self->data_as_str = NULL;
+    self->ob_type->tp_free((PyObject *)self);
 }
 
 static Py_ssize_t MarkerMap_len(PyObject *self)
