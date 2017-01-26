@@ -1,7 +1,7 @@
 from setuptools import setup
 from setuptools import Extension
 
-version = "0.3.18"
+version = "0.3.19"
 
 jcpmodule = Extension(
     'json_cherry_pick.mapper',

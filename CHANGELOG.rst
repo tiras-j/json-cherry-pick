@@ -1,5 +1,11 @@
 Release Notes
 =============
+0.3.19
+------
+
+* Fix py2->3 compat on tp_free
+* Support for cyclical garbage collection of json objects we hold
+
 0.3.18
 ------
 
