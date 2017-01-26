@@ -1,5 +1,10 @@
 Release Notes
 =============
+0.3.17
+------
+
+* Fix refcount on default value from `get()`
+
 0.3.16
 ------
 
