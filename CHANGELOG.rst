@@ -1,5 +1,10 @@
 Release Notes
 =============
+0.3.22
+------
+
+* Turns out segfault was from referencing stacked markers after table realloc, this is fixed.
+
 0.3.21
 ------
 

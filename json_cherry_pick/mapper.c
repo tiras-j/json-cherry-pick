@@ -185,7 +185,6 @@ static int MarkerMap_clear(MarkerMap *self)
     
 static void MarkerMap_dealloc(MarkerMap *self)
 {
-    self->data_as_str = NULL;
     MarkerMap_clear(self);
     dealloc_map(&self->map);
     Py_TYPE(self)->tp_free((PyObject *)self);
