@@ -303,13 +303,9 @@ static PyObject *call_json_loads(const char *data, struct marker *m)
 {
     PyObject *arglist, *str, *res;
 
-    printf("Calling with datalen: %zu val_start: %zu val_end: %zu\n", strlen(data), m->val_start, m->val_end);
     str = PyUnicode_FromStringAndSize(data + m->val_start, (m->val_end - m->val_start));
-    printf("str is: %p\n", str);
     arglist = Py_BuildValue("(O)", str);
-    printf("arglist is: %p\n", arglist);
     res = PyObject_CallObject(json_loads, arglist);
-    printf("res is: %p\n");
     Py_DECREF(arglist);
     Py_DECREF(str);
     return res;
@@ -410,7 +406,7 @@ static int scan(struct marker_map *map, const char *data, size_t len)
         }
         mark->key_start = prev_pos; // dodge "
         mark->key_end = pos - 1;
-        printf("Got key: %.*s\n", (int)(mark->key_end - mark->key_start), data + mark->key_start);
+        //printf("Got key: %.*s\n", (int)(mark->key_end - mark->key_start), data + mark->key_start);
         // Find ':'
         while(isspace(data[pos])) ++pos;
         if(data[pos++] != ':')
@@ -442,7 +438,7 @@ static int scan(struct marker_map *map, const char *data, size_t len)
             while(data[pos] != '}' && data[pos] != ',') ++pos;
             mark->val_end = pos;
         }
-        printf("Got val: %.*s\n", (int)(mark->val_end - mark->val_start), data + mark->val_start);
+        //printf("Got val: %.*s\n", (int)(mark->val_end - mark->val_start), data + mark->val_start);
         if(stack_ptr > 0) {
             mark->parent = stack[stack_ptr - 1];
         }
@@ -450,15 +446,15 @@ static int scan(struct marker_map *map, const char *data, size_t len)
         while(stack_ptr && data[pos] == '}') {
             mark = stack[--stack_ptr];
             mark->val_end = ++pos;
-            printf("Popping val for key: %.*s\n", (int)(mark->key_end - mark->key_start), data + mark->key_start);
-            printf("val_start: %zu val_end: %zu\n", mark->val_start, mark->val_end);
-            printf("Got val: %.*s\n", (int)(mark->val_end - mark->val_start), data + mark->val_start);
+            //printf("Popping val for key: %.*s\n", (int)(mark->key_end - mark->key_start), data + mark->key_start);
+            //printf("val_start: %zu val_end: %zu\n", mark->val_start, mark->val_end);
+            //printf("Got val: %.*s\n", (int)(mark->val_end - mark->val_start), data + mark->val_start);
         }
         ++pos;
-        printf("Iterating at %zu of %zu at val %c\n", pos, len, data[pos]);
+        //printf("Iterating at %zu of %zu at val %c\n", pos, len, data[pos]);
     }
     if(stack_ptr)
-        printf("We've left something unfinished!!!\n");
+        return -1;
 
     return 0;
 
