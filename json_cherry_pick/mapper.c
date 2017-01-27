@@ -390,10 +390,10 @@ static int scan(struct marker_map *map, const char *data, size_t len)
         if(!mark)
             goto err;
         if(reallocd) {
-            char *key = NULL;
-            size_t idx = 0;
             // insert triggered realloc
             // we need to fixup all outstanding stack pointers
+            char *key = NULL;
+            size_t idx = 0;
             for(; idx < stack_ptr; idx++) {
                 key = strndup(data + stack[idx]->key_start, stack[idx]->key_end - stack[idx]->key_start);
                 if(!key)
@@ -403,8 +403,10 @@ static int scan(struct marker_map *map, const char *data, size_t len)
                 if(!stack[idx])
                     goto err;
             }
+            // Clear flag
+            reallocd = 0;
         }
-        mark->key_start = prev_pos; // dodge "
+        mark->key_start = prev_pos;
         mark->key_end = pos - 1;
         //printf("Got key: %.*s\n", (int)(mark->key_end - mark->key_start), data + mark->key_start);
         // Find ':'
