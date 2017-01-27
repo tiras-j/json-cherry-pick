@@ -20,7 +20,7 @@ struct marker_map {
 };
 
 int initialize_map(struct marker_map *m);
-struct marker *insert_marker(struct marker_map *map, const char *data, size_t start, size_t end);
+struct marker *insert_marker(struct marker_map *map, const char *data, size_t start, size_t end, int *reallocd);
 struct marker *fetch_marker(struct marker_map *map, const char *data, const char *key);
 int map_iter(struct marker_map *map, ssize_t *i, PyObject **ljson);
 void dealloc_map(struct marker_map *map);

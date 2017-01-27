@@ -75,16 +75,15 @@ int initialize_map(struct marker_map *m)
     return 0;
 }
 
-struct marker *insert_marker(struct marker_map *map, const char *data, size_t start, size_t end)
+struct marker *insert_marker(struct marker_map *map, const char *data, size_t start, size_t end, int *reallocd)
 {
     unsigned long hash = djb2_hash(data + start, end - start);
     ssize_t pos;
 
     if(map->nmemb == map->size) {
-        //printf("Realloc... ");
         if(realloc_map(map) == -1)
             return NULL;
-        //printf("success!\n");
+        *reallocd = 1;
     }
 
     if((pos = locate_free_slot(map, hash)) == -1)
@@ -101,11 +100,13 @@ struct marker *fetch_marker(struct marker_map *map, const char *data, const char
 
     unsigned long pos = djb2_hash(key, strlen(key)) % map->size;
     unsigned long s_pos = pos;
+    size_t key_len = strlen(key);
 
     do {
         if(!map->pool[pos].used) {
             return NULL;
-        } else if(!strncmp(key, data + map->pool[pos].key_start, strlen(key))) {
+        } else if(key_len == (map->pool[pos].key_end - map->pool[pos].key_start) &&
+                 !strncmp(key, data + map->pool[pos].key_start, key_len)) {
             return &map->pool[pos];
         }
         if(++pos == map->size)

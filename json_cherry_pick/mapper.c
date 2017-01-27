@@ -196,10 +196,11 @@ static Py_ssize_t MarkerMap_len(PyObject *self)
     return ((MarkerMap*)self)->map.nmemb;
 }
 
-static int MarkerMap_contains(PyObject *self, PyObject *key)
+static int MarkerMap_contains(PyObject *obj, PyObject *key)
 {
     const char *k;
     struct marker *m = NULL;
+    MarkerMap *self = (MarkerMap*) obj;
 #if PY_MAJOR_VERSION < 3
     if(!PyString_Check(key)) {
         PyErr_SetString(PyExc_TypeError, "Keys must be string type");
@@ -214,7 +215,7 @@ static int MarkerMap_contains(PyObject *self, PyObject *key)
     k = (const char *)PyUnicode_1BYTE_DATA(key);
 #endif
 
-    if((m = fetch_marker(&((MarkerMap*)self)->map, ((MarkerMap*)self)->data_as_str, k)) == NULL) {
+    if((m = fetch_marker(&self->map, self->data_as_str, k)) == NULL) {
         return 0;
     }
     return 1;
@@ -246,10 +247,11 @@ static PyObject *MarkerMap_get(MarkerMap *self, PyObject *args)
     return m->loaded_json;
 }
     
-static PyObject *MarkerMap_subscript(PyObject *self, PyObject *key)
+static PyObject *MarkerMap_subscript(PyObject *obj, PyObject *key)
 {
     const char *k;
     struct marker *m = NULL;
+    MarkerMap *self = (MarkerMap *)obj;
 #if PY_MAJOR_VERSION < 3
     if(!PyString_Check(key)) {
         PyErr_SetString(PyExc_TypeError, "Keys must be string type");
@@ -263,7 +265,7 @@ static PyObject *MarkerMap_subscript(PyObject *self, PyObject *key)
     }
     k = (const char *)PyUnicode_1BYTE_DATA(key);
 #endif
-    if((m = fetch_marker(&((MarkerMap *)self)->map, ((MarkerMap*)self)->data_as_str, k)) == NULL) {
+    if((m = fetch_marker(&self->map, self->data_as_str, k)) == NULL) {
         PyErr_SetString(PyExc_KeyError, "Key not found");
         return NULL;
     }
@@ -276,7 +278,7 @@ static PyObject *MarkerMap_subscript(PyObject *self, PyObject *key)
         return m->loaded_json;
     }
 
-    if((m->loaded_json = call_json_loads(((MarkerMap*)self)->data_as_str, m)) != NULL) {
+    if((m->loaded_json = call_json_loads(self->data_as_str, m)) != NULL) {
         Py_INCREF(m->loaded_json);
     }
     return m->loaded_json;
@@ -301,9 +303,13 @@ static PyObject *call_json_loads(const char *data, struct marker *m)
 {
     PyObject *arglist, *str, *res;
 
+    printf("Calling with datalen: %zu val_start: %zu val_end: %zu\n", strlen(data), m->val_start, m->val_end);
     str = PyUnicode_FromStringAndSize(data + m->val_start, (m->val_end - m->val_start));
+    printf("str is: %p\n", str);
     arglist = Py_BuildValue("(O)", str);
+    printf("arglist is: %p\n", arglist);
     res = PyObject_CallObject(json_loads, arglist);
+    printf("res is: %p\n");
     Py_DECREF(arglist);
     Py_DECREF(str);
     return res;
@@ -370,6 +376,7 @@ static int scan(struct marker_map *map, const char *data, size_t len)
 {
     struct marker *stack[100] = {0}, *mark;
     size_t pos = 0, prev_pos = 0, stack_ptr = 0;
+    int reallocd = 0;
 
     // First verify the object
     if(data[pos++] != '{')
@@ -383,12 +390,27 @@ static int scan(struct marker_map *map, const char *data, size_t len)
 
         prev_pos = pos;
         CONSUME_STRING(data, pos);
-        mark = insert_marker(map, data, prev_pos, pos - 1);
+        mark = insert_marker(map, data, prev_pos, pos - 1, &reallocd);
         if(!mark)
             goto err;
+        if(reallocd) {
+            char *key = NULL;
+            size_t idx = 0;
+            // insert triggered realloc
+            // we need to fixup all outstanding stack pointers
+            for(; idx < stack_ptr; idx++) {
+                key = strndup(data + stack[idx]->key_start, stack[idx]->key_end - stack[idx]->key_start);
+                if(!key)
+                    goto err;
+                stack[idx] = fetch_marker(map, data, key);
+                free(key);
+                if(!stack[idx])
+                    goto err;
+            }
+        }
         mark->key_start = prev_pos; // dodge "
         mark->key_end = pos - 1;
-        //printf("Got key: %.*s\n", (int)(mark->key_end - mark->key_start), data + mark->key_start);
+        printf("Got key: %.*s\n", (int)(mark->key_end - mark->key_start), data + mark->key_start);
         // Find ':'
         while(isspace(data[pos])) ++pos;
         if(data[pos++] != ':')
@@ -420,7 +442,7 @@ static int scan(struct marker_map *map, const char *data, size_t len)
             while(data[pos] != '}' && data[pos] != ',') ++pos;
             mark->val_end = pos;
         }
-        //printf("Got val: %.*s\n", (int)(mark->val_end - mark->val_start), data + mark->val_start);
+        printf("Got val: %.*s\n", (int)(mark->val_end - mark->val_start), data + mark->val_start);
         if(stack_ptr > 0) {
             mark->parent = stack[stack_ptr - 1];
         }
@@ -428,10 +450,15 @@ static int scan(struct marker_map *map, const char *data, size_t len)
         while(stack_ptr && data[pos] == '}') {
             mark = stack[--stack_ptr];
             mark->val_end = ++pos;
+            printf("Popping val for key: %.*s\n", (int)(mark->key_end - mark->key_start), data + mark->key_start);
+            printf("val_start: %zu val_end: %zu\n", mark->val_start, mark->val_end);
+            printf("Got val: %.*s\n", (int)(mark->val_end - mark->val_start), data + mark->val_start);
         }
         ++pos;
-        //printf("Iterating at %zu of %zu at val %c\n", pos, len, data[pos]);
+        printf("Iterating at %zu of %zu at val %c\n", pos, len, data[pos]);
     }
+    if(stack_ptr)
+        printf("We've left something unfinished!!!\n");
 
     return 0;
 
